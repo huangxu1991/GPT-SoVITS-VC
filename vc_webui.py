@@ -90,6 +90,7 @@ if torch.cuda.is_available():
         fp32_tensor = torch.tensor(fp16_tensor).cuda()
         # 执行一个简单的操作，比如加法
         result = fp16_tensor + fp32_tensor
+        is_half = True
         print("FP16 is supported on this device.")
     except RuntimeError as e:
         # 如果发生运行时错误，可能是因为设备不支持FP16
