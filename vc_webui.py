@@ -50,8 +50,9 @@ def get_pretrain_model_path(env_name, log_file, def_path):
     return pretrain_path
 
 
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-device = 'cpu'
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+#device = 'cpu'
 
 gpt_path = get_pretrain_model_path('gpt_path', "./gweight.txt", 
                                    "GPT_SoVITS/pretrained_models/s1bert25hz-2kh-longer-epoch=68e-step=50232.ckpt")
@@ -72,7 +73,32 @@ if "_CUDA_VISIBLE_DEVICES" in os.environ:
     os.environ["CUDA_VISIBLE_DEVICES"] = os.environ["_CUDA_VISIBLE_DEVICES"]
 
 # is_half = eval(os.environ.get("is_half", "True")) and not torch.backends.mps.is_available()
-is_half = False
+# 检查CUDA是否可用
+if torch.cuda.is_available():
+    # 获取当前CUDA设备的信息
+    device_name = torch.cuda.get_device_name(0)
+    print(f"Current device: {device_name}")
+
+    # 创建一个FP16张量
+    fp16_tensor = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float16)
+
+    # 尝试在GPU上执行操作
+    try:
+        # 将张量移动到GPU
+        fp16_tensor = fp16_tensor.cuda()
+        # 创建一个与fp16_tensor相同大小的FP32张量
+        fp32_tensor = torch.tensor(fp16_tensor).cuda()
+        # 执行一个简单的操作，比如加法
+        result = fp16_tensor + fp32_tensor
+        print("FP16 is supported on this device.")
+    except RuntimeError as e:
+        # 如果发生运行时错误，可能是因为设备不支持FP16
+        print(f"FP16 is not supported on this device. Error: {e}")
+
+        is_half = False
+else:
+    is_half = False
+    print("CUDA is not available, cannot check for FP16 support.")
 
 os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'  # 确保直接启动推理UI时也能够设置。
 
